@@ -3,5 +3,9 @@
     "oclif",
     "oclif-typescript",
     "prettier"
-  ]
+  ],
+  "rules": {
+    "no-await-in-loop": "off",
+    "no-useless-constructor": "off"
+  }
 }

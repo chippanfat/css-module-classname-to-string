@@ -4,17 +4,16 @@ import { readdir } from "node:fs/promises";
 import { statSync, closeSync, openSync } from "node:fs";
 
 export default class Files {
+  private readonly fileExtensions: string[] = ["less", "css", "scss"];
+
   constructor(
     private readonly path: string,
     private readonly root: string,
     private readonly globalFile: string
   ) {}
 
-  private checkFileForExtensions = (
-    file: string,
-    fileExtensions: string[] = ["less", "css", "scss"]
-  ): boolean => {
-    for (const extension of fileExtensions) {
+  private checkFileForExtensions = (file: string): boolean => {
+    for (const extension of this.fileExtensions) {
       if (file.includes(extension)) {
         return true;
       }
