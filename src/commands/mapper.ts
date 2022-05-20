@@ -34,8 +34,8 @@ export default class Mapper extends Command {
     const globalStylesheet = await files.createGlobalStylesheet();
     const fileList = await files.getFoldersWithStyles();
 
-    // const components = new Components(fileList);
-    // await components.convertModulesToString();
+    const components = new Components(fileList);
+    await components.convertModulesToString();
 
     const styles = new Styles(fileList, globalStylesheet);
     await styles.convertModulesToString();
