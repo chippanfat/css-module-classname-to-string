@@ -1,7 +1,7 @@
 // eslint-disable-next-line node/no-missing-import
 import { readdir } from "node:fs/promises";
 // eslint-disable-next-line node/no-missing-import
-import { statSync, closeSync, openSync } from "node:fs";
+import { statSync, closeSync, openSync, unlink } from "node:fs";
 
 export default class Files {
   private readonly fileExtensions: string[] = ["less", "css", "scss"];
@@ -47,11 +47,13 @@ export default class Files {
     return this.getFiles(this.path, []);
   }
 
-  async createGlobalStylesheet(): Promise<void> {
+  async createGlobalStylesheet(): Promise<string> {
     const file = `${this.root}/${this.globalFile}`;
 
     if (!statSync(file).isFile()) {
       closeSync(openSync(file, "w"));
     }
+
+    return file;
   }
 }

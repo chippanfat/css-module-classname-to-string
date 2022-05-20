@@ -3,6 +3,12 @@
   "version": "0.0.0",
   "description": "oclif example Hello World CLI",
   "author": "Ethan Flynn-Harding",
+  "config": {
+    "files": {
+      "styles": ["css", "less", "scss"],
+      "components": ["tsx"]
+    }
+  },
   "bin": {
     "css-module-classname-to-string": "./bin/run"
   },
@@ -63,7 +69,7 @@
     "prepack": "yarn build && oclif manifest && oclif readme",
     "test": "mocha --forbid-only \"test/**/*.test.ts\"",
     "version": "oclif readme && git add README.md",
-    "build:dev": "./bin/dev mapper -p /media/veracrypt1/frontend-toolkit/packages/frontend-sdk/src/components -r /media/veracrypt1/frontend-toolkit/packages/frontend-sdk/src -f app.css"
+    "build:dev": "./bin/dev mapper -p /code/frontend-toolkit/packages/frontend-sdk/src/components -r /code/frontend-toolkit/packages/frontend-sdk/src -f app.less"
   },
   "engines": {
     "node": ">=12.0.0"

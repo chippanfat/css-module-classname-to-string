@@ -1,6 +1,7 @@
 import { Command, Flags } from "@oclif/core";
 import Files from "../files";
 import Components from "../components";
+import Styles from "../styles";
 
 export default class Mapper extends Command {
   static description = "describe the command here";
@@ -30,10 +31,13 @@ export default class Mapper extends Command {
 
     const files = new Files(path, root, file);
 
-    await files.createGlobalStylesheet();
+    const globalStylesheet = await files.createGlobalStylesheet();
     const fileList = await files.getFoldersWithStyles();
 
-    const components = new Components(fileList);
-    await components.convertModulesToString();
+    // const components = new Components(fileList);
+    // await components.convertModulesToString();
+
+    const styles = new Styles(fileList, globalStylesheet);
+    await styles.convertModulesToString();
   }
 }

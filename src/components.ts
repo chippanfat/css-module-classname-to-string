@@ -1,20 +1,20 @@
 // eslint-disable-next-line node/no-missing-import
 import { readdir, readFile, writeFile } from "node:fs/promises";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import * as config from "../package.json";
 
 export default class Components {
-  private readonly extensions: string[] = ["ts"];
-  private readonly styleExtensions: string[] = ["css", "less", "scss"];
+  private readonly extensions: string[] = config.config.files.components;
+  private readonly styleExtensions: string[] = config.config.files.styles;
 
   constructor(private readonly folderList: string[]) {}
 
-  private static async convertClassNamesToString(
-    file: string,
+  private static removeClassNames(
+    content: string[],
     styleModule: string
-  ): Promise<void> {
-    const content = await Components.getFileContent(file);
-    const newFile: string[] = [];
-    let shouldWriteFile = false;
-
+  ): string[] {
+    const newContent: string[] = [];
     for (const line of content) {
       const regex = new RegExp(
         "className=\\{(" + styleModule + ".([a-zA-Z]+))}"
@@ -22,19 +22,45 @@ export default class Components {
       const matcher = regex.exec(line);
 
       if (matcher === null) {
-        newFile.push(line);
+        newContent.push(line);
       } else {
-        shouldWriteFile = true;
-        newFile.push(line.replace(`{${matcher[1]}}`, `"${matcher[2]}"`));
+        newContent.push(line.replace(`{${matcher[1]}}`, `"${matcher[2]}"`));
       }
     }
 
-    if (shouldWriteFile) {
-      await writeFile(file, newFile.join("\n"), {
-        encoding: "utf8",
-        flag: "w+",
-      });
+    return newContent;
+  }
+
+  private static removeStyleImportFromComponent(
+    content: string[],
+    importString: string
+  ): string[] {
+    for (const [index, line] of content.entries()) {
+      if (line.includes(importString)) {
+        content.splice(index, 1);
+      }
     }
+
+    return content;
+  }
+
+  private static async convertComponents(
+    file: string,
+    styleModule: string,
+    styleImport: string
+  ): Promise<void> {
+    let fileContent: string[];
+    const content = await Components.getFileContent(file);
+    fileContent = Components.removeClassNames(content, styleModule);
+    fileContent = Components.removeStyleImportFromComponent(
+      fileContent,
+      styleImport
+    );
+
+    await writeFile(file, fileContent.join("\n"), {
+      encoding: "utf8",
+      flag: "w+",
+    });
   }
 
   private static async getFileContent(file: string): Promise<string[]> {
@@ -45,7 +71,7 @@ export default class Components {
   private static async getStyleImport(
     file: string,
     styleModule: string
-  ): Promise<RegExpExecArray> {
+  ): Promise<RegExpExecArray | undefined> {
     const content = await Components.getFileContent(file);
     for (const line of content) {
       const regex = new RegExp(
@@ -61,14 +87,15 @@ export default class Components {
       }
     }
 
-    throw new Error("Unable to find style import");
+    return undefined;
   }
-
-  private removeStyleImportFromComponent() {}
 
   async handleFile(file: string, styleModule: string): Promise<void> {
     const styles = await Components.getStyleImport(file, styleModule);
-    await Components.convertClassNamesToString(file, styles[1]);
+
+    if (typeof styles !== "undefined") {
+      await Components.convertComponents(file, styles[1], styles[0]);
+    }
   }
 
   private getStyleModuleForComponent = (files: string[]) => {
@@ -100,8 +127,8 @@ export default class Components {
   }
 
   async convertModulesToString(): Promise<void> {
-    // for (const directory of this.folderList) {
-    await this.processFiles(this.folderList[0]);
-    // }
+    for (const directory of this.folderList) {
+      await this.processFiles(directory);
+    }
   }
 }
