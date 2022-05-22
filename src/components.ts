@@ -1,5 +1,5 @@
 // eslint-disable-next-line node/no-missing-import
-import { readdir, readFile, writeFile } from "node:fs/promises";
+import { readdir, readFile, unlink, writeFile } from "node:fs/promises";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import * as config from "../package.json";
@@ -108,6 +108,10 @@ export default class Components {
     }
   };
 
+  private static async removeStyleModuleFile(path: string): Promise<void> {
+    await unlink(path);
+  }
+
   async processFiles(folder: string): Promise<void> {
     const files: string[] = await readdir(folder);
 
@@ -123,6 +127,7 @@ export default class Components {
       }
 
       await this.handleFile(`${folder}/${file}`, styleModule);
+      await Components.removeStyleModuleFile(`${folder}/${styleModule}`);
     }
   }
 
