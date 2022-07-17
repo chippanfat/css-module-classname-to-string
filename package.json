@@ -5,8 +5,14 @@
   "author": "Ethan Flynn-Harding",
   "config": {
     "files": {
-      "styles": ["css", "less", "scss"],
-      "components": ["tsx"]
+      "styles": [
+        "css",
+        "less",
+        "scss"
+      ],
+      "components": [
+        "tsx"
+      ]
     }
   },
   "bin": {
@@ -25,7 +31,8 @@
   "dependencies": {
     "@oclif/core": "^1",
     "@oclif/plugin-help": "^5",
-    "@oclif/plugin-plugins": "^2.0.1"
+    "@oclif/plugin-plugins": "^2.0.1",
+    "crypto-random-string": "^5.0.0"
   },
   "devDependencies": {
     "@oclif/test": "^2",
@@ -69,7 +76,7 @@
     "prepack": "yarn build && oclif manifest && oclif readme",
     "test": "mocha --forbid-only \"test/**/*.test.ts\"",
     "version": "oclif readme && git add README.md",
-    "build:dev": "./bin/dev mapper -p /media/veracrypt1/frontend-toolkit/packages/frontend-sdk/src/components -r /media/veracrypt1/frontend-toolkit/packages/frontend-sdk/src -f app.css"
+    "run:dev": "./bin/dev mapper -p /media/veracrypt1/frontend-toolkit/packages/frontend-sdk/src/components -r /media/veracrypt1/frontend-toolkit/packages/frontend-sdk/src -f app.less"
   },
   "engines": {
     "node": ">=12.0.0"

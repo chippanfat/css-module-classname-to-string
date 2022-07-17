@@ -7,8 +7,17 @@ export default class Styles {
 
   constructor(
     private readonly folderList: string[],
-    private readonly globalStyleSheet: string
+    private readonly globalStyleSheet: string,
+    private readonly classNameMap: Map<string, string>
   ) {}
+
+  private getStylesInModule(line: string): RegExpExecArray | undefined {
+    const regex = new RegExp("(\\.-?(?!ant)[_a-zA-Z]+[_a-zA-Z0-9-]*\\s*)", "");
+
+    const matcher = regex.exec(line);
+
+    return matcher === null ? undefined : matcher;
+  }
 
   async handleFile(path: string, stream: WriteStream): Promise<void> {
     const content = await readFile(path, "utf-8");

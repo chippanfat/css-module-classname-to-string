@@ -1,5 +1,7 @@
 // eslint-disable-next-line node/no-missing-import
 import { readdir, readFile, unlink, writeFile } from "node:fs/promises";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars,node/no-missing-import
+import { randomUUID } from "node:crypto";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import * as config from "../package.json";
@@ -12,9 +14,11 @@ export default class Components {
 
   private static removeClassNames(
     content: string[],
-    styleModule: string
+    styleModule: string,
+    classNameMap: Map<string, string>
   ): string[] {
     const newContent: string[] = [];
+    const uuid = randomUUID();
     for (const line of content) {
       const regex = new RegExp(
         "className=\\{(" + styleModule + ".([a-zA-Z]+))}"
@@ -24,7 +28,8 @@ export default class Components {
       if (matcher === null) {
         newContent.push(line);
       } else {
-        newContent.push(line.replace(`{${matcher[1]}}`, `"${matcher[2]}"`));
+        classNameMap.set(matcher[2], uuid);
+        newContent.push(line.replace(`{${matcher[1]}}`, `"${uuid}"`));
       }
     }
 
@@ -47,11 +52,16 @@ export default class Components {
   private static async convertComponents(
     file: string,
     styleModule: string,
-    styleImport: string
+    styleImport: string,
+    classNameMap: Map<string, string>
   ): Promise<void> {
     let fileContent: string[];
     const content = await Components.getFileContent(file);
-    fileContent = Components.removeClassNames(content, styleModule);
+    fileContent = Components.removeClassNames(
+      content,
+      styleModule,
+      classNameMap
+    );
     fileContent = Components.removeStyleImportFromComponent(
       fileContent,
       styleImport
@@ -90,11 +100,20 @@ export default class Components {
     return undefined;
   }
 
-  async handleFile(file: string, styleModule: string): Promise<void> {
+  async handleFile(
+    file: string,
+    styleModule: string,
+    classNameMap: Map<string, string>
+  ): Promise<void> {
     const styles = await Components.getStyleImport(file, styleModule);
 
     if (typeof styles !== "undefined") {
-      await Components.convertComponents(file, styles[1], styles[0]);
+      await Components.convertComponents(
+        file,
+        styles[1],
+        styles[0],
+        classNameMap
+      );
     }
   }
 
@@ -112,8 +131,9 @@ export default class Components {
     await unlink(path);
   }
 
-  async processFiles(folder: string): Promise<void> {
+  async processFiles(folder: string): Promise<Map<string, string>> {
     const files: string[] = await readdir(folder);
+    const classNameMap = new Map<string, string>();
 
     for (const extension of this.extensions) {
       const file = files.find((name) => name.includes(extension));
@@ -122,18 +142,22 @@ export default class Components {
       }
 
       const styleModule = this.getStyleModuleForComponent(files);
+
       if (!styleModule) {
         throw new Error("Cannot work out what style sheet name to use");
       }
 
-      await this.handleFile(`${folder}/${file}`, styleModule);
+      await this.handleFile(`${folder}/${file}`, styleModule, classNameMap);
       await Components.removeStyleModuleFile(`${folder}/${styleModule}`);
     }
+
+    return classNameMap;
   }
 
-  async convertModulesToString(): Promise<void> {
-    for (const directory of this.folderList) {
-      await this.processFiles(directory);
-    }
+  async convertModulesToString(): Promise<Map<string, string>> {
+    return this.processFiles(this.folderList[1]);
+    // for (const directory of this.folderList) {
+    //   await this.processFiles(directory);
+    // }
   }
 }
